@@ -8,12 +8,15 @@ public class PlayerController : MonoBehaviour {
 	public GUIText timeText;
 	private int count;
 	public float time;
+	private float keepTime;
 	private bool blink;
 	public int blinkSpeed;	
 	public float delay;
 	private float delayedTime;
 	private int blinkCounter;
 	private bool wasHere;
+	private Color textColor;
+	private Color countColor;
 	private List<GameObject> inactivePickups = new List<GameObject>();
 	
 	//called before rendering a frame
@@ -24,6 +27,13 @@ public class PlayerController : MonoBehaviour {
 		delayedTime = 0;
 		blinkCounter=0;
 		wasHere=false;
+		keepTime = time;
+		textColor = Color.black;
+		countColor = Color.black;
+		countText.color = countColor;
+		timeText.color = textColor;
+		countText.fontSize = 28;
+		timeText.fontSize = 28;
 	}
 	
 	void Update(){
@@ -31,6 +41,7 @@ public class PlayerController : MonoBehaviour {
 			setTimeText();
 		
 		if(Time.time < delayedTime){
+			timeText.color = Color.red;
 			if(blinkCounter==blinkSpeed){
 				blink = false;
 				blinkCounter=0;
@@ -44,10 +55,11 @@ public class PlayerController : MonoBehaviour {
 			resetGameObjects();
 			wasHere=false;
 			blink=false;
+			timeText.color = Color.black;
 		}
 	}
 	
-	//called just before performing any physics calculation
+	//called just before per forming any physics calculation
 	void FixedUpdate(){
 		float moveHorizontal = Input.GetAxis("Horizontal");
 		float moveVertical = Input.GetAxis("Vertical");
@@ -57,10 +69,8 @@ public class PlayerController : MonoBehaviour {
 	
 	void OnTriggerEnter(Collider other){
 		if(other.gameObject.tag == "Pickup"){
-			//Destroy (other.gameObject);  ...or...
 			other.gameObject.SetActive(false);
 			inactivePickups.Add(other.gameObject);
-			//other.gameObject.active=false;
 			++count;
 			setCountText();
 		}
@@ -87,13 +97,14 @@ public class PlayerController : MonoBehaviour {
 			pickup.SetActive(true);
 		}
 		inactivePickups.Clear();
-		time = 15;
+		time = keepTime;
+		count = 0;
+		setCountText();
 	}
 	
 	void OnGUI(){
 		if(blink){
 			timeText.enabled = false;
-			timeText.pixelOffset += Vector2(-50,-50);
 		}else{
 			timeText.enabled = true;
 		}
