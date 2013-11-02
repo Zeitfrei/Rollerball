@@ -9,14 +9,17 @@ public class PlayerController : MonoBehaviour {
 	private int count;
 	public float time;
 	private float keepTime;
+	private Vector3 movement;
+	
 	private bool blink;
-	public int blinkSpeed;	
 	public float delay;
 	private float delayedTime;
-	private int blinkCounter;
 	private bool wasHere;
+	private int blinkCounter;
+	
 	private Color textColor;
 	private Color countColor;
+	
 	private List<GameObject> inactivePickups = new List<GameObject>();
 	
 	//called before rendering a frame
@@ -25,7 +28,6 @@ public class PlayerController : MonoBehaviour {
 		blink = false;
 		setCountText();
 		delayedTime = 0;
-		blinkCounter=0;
 		wasHere=false;
 		keepTime = time;
 		textColor = Color.black;
@@ -34,6 +36,10 @@ public class PlayerController : MonoBehaviour {
 		timeText.color = textColor;
 		countText.fontSize = 28;
 		timeText.fontSize = 28;
+		blinkCounter=0;
+		
+		Vector3 newPos = new Vector3(0,2,0); 
+		transform.position = newPos;
 	}
 	
 	void Update(){
@@ -41,21 +47,24 @@ public class PlayerController : MonoBehaviour {
 			setTimeText();
 		
 		if(Time.time < delayedTime){
+			rigidbody.mass = 10000000;
+			rigidbody.AddForce(-movement*speed*0.5f);
+			++blinkCounter;
 			timeText.color = Color.red;
-			if(blinkCounter==blinkSpeed){
+			if(blink){
 				blink = false;
-				blinkCounter=0;
 			}else{
 				blink = true;
 			}
-			blinkCounter++;
 			wasHere = true;
 		}
+		
 		if(Time.time > delayedTime && wasHere){
 			resetGameObjects();
-			wasHere=false;
 			blink=false;
 			timeText.color = Color.black;
+			blinkCounter=0;
+			StartCoroutine(justWait(1.5f));
 		}
 	}
 	
@@ -63,12 +72,12 @@ public class PlayerController : MonoBehaviour {
 	void FixedUpdate(){
 		float moveHorizontal = Input.GetAxis("Horizontal");
 		float moveVertical = Input.GetAxis("Vertical");
-		Vector3 movement = new Vector3(moveHorizontal,0.0f,moveVertical);
+		movement = new Vector3(moveHorizontal,0.0f,moveVertical);
 		rigidbody.AddForce(movement*speed);
 	}
 	
 	void OnTriggerEnter(Collider other){
-		if(other.gameObject.tag == "Pickup"){
+		if(other.gameObject.tag == "Pickup" && !wasHere){
 			other.gameObject.SetActive(false);
 			inactivePickups.Add(other.gameObject);
 			++count;
@@ -81,6 +90,8 @@ public class PlayerController : MonoBehaviour {
 	}
 	
 	void setTimeText(){
+		if(time == keepTime)
+			time++;
 		if(time>0){
 			time -= Time.deltaTime;
 			timeText.text = "Time: " + ((int) time).ToString();
@@ -103,10 +114,26 @@ public class PlayerController : MonoBehaviour {
 	}
 	
 	void OnGUI(){
+		if(wasHere)
+			StartCoroutine(blinkWaiter());
+	}
+	
+	IEnumerator blinkWaiter(){
+		yield return new WaitForSeconds(0.2f*blinkCounter);	
 		if(blink){
 			timeText.enabled = false;
-		}else{
+		}else if(!blink){
 			timeText.enabled = true;
 		}
+	}
+	
+	IEnumerator justWait(float time){
+		rigidbody.isKinematic = true;
+		Vector3 newPos = new Vector3(0,2,0); 
+		transform.position = newPos;
+		this.rigidbody.mass = 1;
+		yield return new WaitForSeconds(time);
+		rigidbody.isKinematic = false;
+		wasHere=false;
 	}
 }
