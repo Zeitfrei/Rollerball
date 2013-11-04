@@ -4,6 +4,7 @@ using System.Collections;
 public class CameraController : MonoBehaviour {
 	
 	public GameObject player;
+	//public AudioListener listener;
 	private Vector3 offset; //offset to player object
 
 	void Start () {
