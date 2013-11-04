@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour {
 	private Color textColor;
 	private Color countColor;
 	
+	
 	private List<GameObject> inactivePickups = new List<GameObject>();
 	
 	//called before rendering a frame
@@ -59,6 +60,7 @@ public class PlayerController : MonoBehaviour {
 			wasHere = true;
 		}
 		
+		// is true, if time is up and blinking done
 		if(Time.time > delayedTime && wasHere){
 			resetGameObjects();
 			blink=false;
@@ -127,6 +129,7 @@ public class PlayerController : MonoBehaviour {
 		}
 	}
 	
+	// waits for game to run again and does some stuff
 	IEnumerator justWait(float time){
 		rigidbody.isKinematic = true;
 		Vector3 newPos = new Vector3(0,2,0); 
@@ -137,3 +140,5 @@ public class PlayerController : MonoBehaviour {
 		wasHere=false;
 	}
 }
+
+//todo: one function to end the game (after time run out or all pickups gone)
